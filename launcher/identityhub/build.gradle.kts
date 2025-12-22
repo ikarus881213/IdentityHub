@@ -20,6 +20,9 @@ plugins {
 
 dependencies {
     runtimeOnly(project(":dist:bom:identityhub-bom"))
+    runtimeOnly(project(":extensions:superuser-seed"))
+    runtimeOnly(project(":dist:bom:identityhub-feature-sql-bom"))
+    runtimeOnly("org.eclipse.edc:vault-hashicorp:${libs.versions.edc.get()}")
 }
 
 application {
