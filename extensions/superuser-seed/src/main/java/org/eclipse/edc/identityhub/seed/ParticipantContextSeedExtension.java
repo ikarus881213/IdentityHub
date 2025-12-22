@@ -15,7 +15,7 @@
 package org.eclipse.edc.identityhub.seed;
 
 import org.eclipse.edc.identityhub.spi.authentication.ServicePrincipal;
-import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
+import org.eclipse.edc.identityhub.spi.participantcontext.IdentityHubParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.KeyDescriptor;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.ParticipantManifest;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -44,7 +44,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
     private String superUserApiKey;
     private Monitor monitor;
     @Inject
-    private ParticipantContextService participantContextService;
+    private IdentityHubParticipantContextService participantContextService;
     @Inject
     private Vault vault;
 
@@ -68,7 +68,7 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
             return;
         }
         participantContextService.createParticipantContext(ParticipantManifest.Builder.newInstance()
-                        .participantId(superUserParticipantId)
+                        .participantContextId(superUserParticipantId)
                         .did("did:web:%s".formatted(superUserParticipantId)) // doesn't matter, not intended for resolution
                         .active(true)
                         .key(KeyDescriptor.Builder.newInstance()
