@@ -121,7 +121,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"participantContextId\": \"holder-user\",\n    \"did\": \"did:web:holder-user\",\n    \"active\": true,\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"id\": \"did:web:holder-user#credentials\",\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://holder-user:10001/api/presentation\"\n        }\n    ],\n    \"keys\": [\n        {\n            \"privateKeyAlias\": \"holder-user-alias\",\n            \"keyId\": \"did:web:holder-user#keys-1\",\n            \"keyGeneratorParams\": {\n                \"algorithm\": \"EdDSA\",\n                \"curve\": \"Ed25519\"\n            },\n            \"usage\": [\n                \"sign_presentation\",\n                \"sign_token\"\n            ]\n        }\n    ]\n}"
+							"raw": "{\n    \"participantContextId\": \"holder-user\",\n    \"did\": \"did:web:holder-user\",\n    \"active\": true,\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"id\": \"did:web:holder-user#credentials\",\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://holder-user:10001/api/credentials/v1/participants/aG9sZGVyLXVzZXI=\"\n        }\n    ],\n    \"keys\": [\n        {\n            \"privateKeyAlias\": \"holder-user-alias\",\n            \"keyId\": \"did:web:holder-user#keys-1\",\n            \"keyGeneratorParams\": {\n                \"algorithm\": \"EdDSA\",\n                \"curve\": \"Ed25519\"\n            },\n            \"usage\": [\n                \"sign_presentation\",\n                \"sign_token\"\n            ]\n        }\n    ]\n}"
 						},
 						"url": {
 							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants",
