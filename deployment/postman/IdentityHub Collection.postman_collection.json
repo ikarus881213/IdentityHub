@@ -99,6 +99,13 @@
 									"var holderIdBase64 = btoa(requestBody.participantContextId);",
 									"pm.environment.set(\"HOLDER_ID_BASE64\", holderIdBase64);",
 									"",
+									"// Capturamos el clientSecret de la respuesta para el STS",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.clientSecret) {",
+									"    pm.environment.set(\"HOLDER_SECRET\", jsonData.clientSecret);",
+									"    console.log(\"Holder Secret captured and saved.\");",
+									"}",
+									"",
 									"console.log(\"Holder Created with ID: \" + requestBody.participantContextId);"
 								],
 								"type": "text/javascript"
@@ -458,6 +465,108 @@
 								"participants",
 								"{{HOLDER_ID_BASE64}}",
 								"credentials"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Presentation Flow",
+			"item": [
+				{
+					"name": "Generate STS Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.environment.set(\"STS_TOKEN\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials"
+								},
+								{
+									"key": "client_id",
+									"value": "{{HOLDER_DID}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{HOLDER_SECRET}}"
+								},
+								{
+									"key": "audience",
+									"value": "{{HOLDER_DID}}"
+								},
+								{
+									"key": "bearer_access_scope",
+									"value": "org.eclipse.edc.vc.type:MembershipCredential:read"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:9192/api/sts/token",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9192",
+							"path": [
+								"api",
+								"sts",
+								"token"
+							]
+						}
+					}
+				},
+				{
+					"name": "Query Presentation (Generate VP)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{STS_TOKEN}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"@context\": [\n    \"https://w3id.org/tractusx-trust/v0.8\"\n  ],\n  \"@type\": \"PresentationQueryMessage\",\n  \"scope\": [\n    \"org.eclipse.edc.vc.type:MembershipCredential:read\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{CREDENTIALS_URL}}/v1/participants/{{HOLDER_ID_BASE64}}/presentations/query",
+							"host": [
+								"{{CREDENTIALS_URL}}"
+							],
+							"path": [
+								"v1",
+								"participants",
+								"{{HOLDER_ID_BASE64}}",
+								"presentations",
+								"query"
 							]
 						}
 					}

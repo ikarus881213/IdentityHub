@@ -39,9 +39,10 @@ services:
         condition: service_started
     ports:
       - "8181:8181"   # Default API
-      - "9091:80"   # DID Resolution (Public)
+      - "9091:80"     # DID Resolution (Public)
       - "8182:8182"   # Identity API
       - "10001:10001" # Credentials API
+      - "9192:9292"   # STS API (NUEVO)
     environment:
       EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/identityhub
       EDC_VAULT_HASHICORP_URL: http://vault:8200
@@ -75,7 +76,7 @@ services:
         condition: service_healthy
     ports:
       - "9191:8181"   # API Default (Admin/Health)
-      - "9090:80"   # DID Resolution (Public)
+      - "9090:80"     # DID Resolution (Public)
       - "8282:8182"   # Identity API
       - "8283:8283"   # Issuance API
       - "8383:8383"   # Admin API
