@@ -1,0 +1,468 @@
+{
+	"info": {
+		"name": "IdentityHub Local Flow",
+		"description": "Flujo completo de identidad y credenciales verificables para entorno local.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Setup & Participants",
+			"item": [
+				{
+					"name": "Get All Participants",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Issuer Participant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Capturamos el ID del cuerpo de la petición, no de la respuesta",
+									"var requestBody = JSON.parse(pm.request.body.raw);",
+									"pm.environment.set(\"ISSUER_ID\", requestBody.participantContextId);",
+									"pm.environment.set(\"ISSUER_DID\", requestBody.did);",
+									"",
+									"// Encode ID to Base64 for API calls that require it in the path",
+									"var issuerIdBase64 = btoa(requestBody.participantContextId);",
+									"pm.environment.set(\"ISSUER_ID_BASE64\", issuerIdBase64);",
+									"",
+									"console.log(\"Issuer Created with ID: \" + requestBody.participantContextId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"issuer-company\",\n    \"did\": \"did:web:issuer-company\",\n    \"active\": true,\n    \"roles\": [\n        \"issuer\"\n    ],\n    \"serviceEndpoints\": [\n        {\n            \"id\": \"did:web:issuer-company#IssuerService\",\n            \"type\": \"IssuerService\",\n            \"serviceEndpoint\": \"http://issuer-company:8283/api/issuance/v1alpha/participants/aXNzdWVyLWNvbXBhbnk=\"\n        }\n    ],\n    \"keys\": [\n        {\n            \"privateKeyAlias\": \"issuer-company-alias\",\n            \"keyId\": \"did:web:issuer-company#keys-1\",\n            \"keyGeneratorParams\": {\n                \"algorithm\": \"EdDSA\",\n                \"curve\": \"Ed25519\"\n            },\n            \"usage\": [\n                \"sign_credentials\",\n                \"sign_presentation\",\n                \"sign_token\"\n            ]\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_IDENTITY_URL}}/v1alpha/participants",
+							"host": [
+								"{{ISSUER_IDENTITY_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Holder Participant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Capturamos el ID del cuerpo de la petición",
+									"var requestBody = JSON.parse(pm.request.body.raw);",
+									"pm.environment.set(\"HOLDER_ID\", requestBody.participantContextId);",
+									"pm.environment.set(\"HOLDER_DID\", requestBody.did);",
+									"",
+									"// Encode ID to Base64 for API calls that require it in the path",
+									"var holderIdBase64 = btoa(requestBody.participantContextId);",
+									"pm.environment.set(\"HOLDER_ID_BASE64\", holderIdBase64);",
+									"",
+									"console.log(\"Holder Created with ID: \" + requestBody.participantContextId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"holder-user\",\n    \"did\": \"did:web:holder-user\",\n    \"active\": true,\n    \"roles\": [],\n    \"serviceEndpoints\": [\n        {\n            \"id\": \"did:web:holder-user#credentials\",\n            \"type\": \"CredentialService\",\n            \"serviceEndpoint\": \"http://holder-user:10001/api/presentation\"\n        }\n    ],\n    \"keys\": [\n        {\n            \"privateKeyAlias\": \"holder-user-alias\",\n            \"keyId\": \"did:web:holder-user#keys-1\",\n            \"keyGeneratorParams\": {\n                \"algorithm\": \"EdDSA\",\n                \"curve\": \"Ed25519\"\n            },\n            \"usage\": [\n                \"sign_presentation\",\n                \"sign_token\"\n            ]\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Activation & Publication",
+			"item": [
+				{
+					"name": "Activate Issuer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"{{ISSUER_ID}}\",\n    \"did\": \"{{ISSUER_DID}}\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_IDENTITY_URL}}/v1alpha/participants/{{ISSUER_ID_BASE64}}/state?isActive=true",
+							"host": [
+								"{{ISSUER_IDENTITY_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{ISSUER_ID_BASE64}}",
+								"state"
+							],
+							"query": [
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Publish Issuer DID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"did\": \"{{ISSUER_DID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_IDENTITY_URL}}/v1alpha/participants/{{ISSUER_ID_BASE64}}/dids/publish",
+							"host": [
+								"{{ISSUER_IDENTITY_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{ISSUER_ID_BASE64}}",
+								"dids",
+								"publish"
+							]
+						}
+					}
+				},
+				{
+					"name": "Activate Holder",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"participantContextId\": \"{{HOLDER_ID}}\",\n    \"did\": \"{{HOLDER_DID}}\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants/{{HOLDER_ID_BASE64}}/state?isActive=true",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{HOLDER_ID_BASE64}}",
+								"state"
+							],
+							"query": [
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Publish Holder DID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"did\": \"{{HOLDER_DID}}\"\n}"
+						},
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants/{{HOLDER_ID_BASE64}}/dids/publish",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{HOLDER_ID_BASE64}}",
+								"dids",
+								"publish"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Issuer Configuration (Admin)",
+			"item": [
+				{
+					"name": "Create Attestation Definition",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"db-attestation\",\n    \"attestationType\": \"database\",\n    \"configuration\": {\n        \"dataSourceName\": \"default\",\n        \"tableName\": \"participant_context\",\n        \"idColumn\": \"participant_context_id\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_ADMIN_URL}}/v1alpha/participants/{{ISSUER_ID_BASE64}}/attestations",
+							"host": [
+								"{{ISSUER_ADMIN_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{ISSUER_ID_BASE64}}",
+								"attestations"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Credential Definition (Membership)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"membership-credential-def\",\n    \"credentialType\": \"MembershipCredential\",\n    \"format\": \"VC1_0_JWT\",\n    \"validity\": 31536000000,\n    \"jsonSchema\": \"{}\",\n    \"jsonSchemaUrl\": \"https://example.com/schemas/membership-credential.json\",\n    \"rules\": [],\n    \"attestations\": [\n        \"db-attestation\"\n    ],\n    \"mappings\": [\n        {\n            \"input\": \"participant_context_id\",\n            \"output\": \"credentialSubject.name\",\n            \"required\": true\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_ADMIN_URL}}/v1alpha/participants/{{ISSUER_ID_BASE64}}/credentialdefinitions",
+							"host": [
+								"{{ISSUER_ADMIN_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{ISSUER_ID_BASE64}}",
+								"credentialdefinitions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Register Holder with Issuer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{ISSUER_ADMIN_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"holderId\": \"{{HOLDER_ID}}\",\n    \"did\": \"{{HOLDER_DID}}\",\n    \"name\": \"Juan Usuario\"\n}"
+						},
+						"url": {
+							"raw": "{{ISSUER_ADMIN_URL}}/v1alpha/participants/{{ISSUER_ID_BASE64}}/holders",
+							"host": [
+								"{{ISSUER_ADMIN_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{ISSUER_ID_BASE64}}",
+								"holders"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Issuance Flow",
+			"item": [
+				{
+					"name": "Request Credential (Holder)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"issuerDid\": \"{{ISSUER_DID}}\",\n    \"holderPid\": \"{{HOLDER_ID}}\",\n    \"credentials\": [\n        {\n            \"format\": \"VC1_0_JWT\",\n            \"type\": \"MembershipCredential\",\n            \"id\": \"membership-credential-def\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants/{{HOLDER_ID_BASE64}}/credentials/request",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{HOLDER_ID_BASE64}}",
+								"credentials",
+								"request"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Credentials (Holder)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Api-Key",
+								"value": "{{API_KEY}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{IDENTITY_HUB_URL}}/v1alpha/participants/{{HOLDER_ID_BASE64}}/credentials",
+							"host": [
+								"{{IDENTITY_HUB_URL}}"
+							],
+							"path": [
+								"v1alpha",
+								"participants",
+								"{{HOLDER_ID_BASE64}}",
+								"credentials"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

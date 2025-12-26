@@ -6,16 +6,20 @@ RUN apk --no-cache add curl
 
 WORKDIR /app
 
-COPY ./build/libs/issuer-service.jar /app
+# Copy the JAR file from its correct location
+COPY launcher/issuer-service/build/libs/issuer-service.jar /app/app.jar
 
-EXPOSE 8188
+# Copy the configuration file from the project root
+COPY dataspaceconnector-configuration.properties /app/config.properties
+
+EXPOSE 8181 8182 8283 8383
 
 ENV WEB_HTTP_PORT="8181"
 ENV WEB_HTTP_PATH="/api"
 
-HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8181/api/check/health
+HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8181/api/check/health || exit 1
 
 # Use "exec" for graceful termination (SIGINT) to reach JVM.
 # ARG can not be used in ENTRYPOINT so storing value in an ENV variable
 ENV ENV_JVM_ARGS=$JVM_ARGS
-ENTRYPOINT [ "sh", "-c", "exec java $ENV_JVM_ARGS -jar issuer-service.jar"]
+ENTRYPOINT [ "sh", "-c", "exec java $ENV_JVM_ARGS -Dedc.fs.config=/app/config.properties -jar app.jar"]

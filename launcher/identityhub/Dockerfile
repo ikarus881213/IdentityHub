@@ -6,16 +6,20 @@ RUN apk --no-cache add curl
 
 WORKDIR /app
 
-COPY ./build/libs/identity-hub.jar /app
+# Copy the JAR file from its correct location
+COPY launcher/identityhub/build/libs/identity-hub.jar /app/app.jar
 
-EXPOSE 8188
+# Copy the configuration file from the project root
+COPY dataspaceconnector-configuration.properties /app/config.properties
+
+EXPOSE 8181 8182 10001
 
 ENV WEB_HTTP_PORT="8181"
 ENV WEB_HTTP_PATH="/api"
 
-HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8181/api/check/health
+HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8181/api/check/health || exit 1
 
 # Use "exec" for graceful termination (SIGINT) to reach JVM.
 # ARG can not be used in ENTRYPOINT so storing value in an ENV variable
 ENV ENV_JVM_ARGS=$JVM_ARGS
-ENTRYPOINT [ "sh", "-c", "exec java $ENV_JVM_ARGS -jar identity-hub.jar"]
+ENTRYPOINT [ "sh", "-c", "exec java $ENV_JVM_ARGS -Dedc.fs.config=/app/config.properties -jar app.jar"]

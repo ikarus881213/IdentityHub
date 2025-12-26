@@ -1,0 +1,99 @@
+services:
+  # --- Base de Datos ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: identityhub-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: identityhub
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Vault ---
+  vault:
+    image: hashicorp/vault:1.13.3
+    container_name: identityhub-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root-token-123
+    cap_add:
+      - IPC_LOCK
+
+  # --- Identity Hub (Holder) ---
+  identity-hub:
+    build:
+      context: .
+      dockerfile: launcher/identityhub/Dockerfile
+    container_name: identityhub-holder
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_started
+    ports:
+      - "8181:8181"   # Default API
+      - "9091:80"   # DID Resolution (Public)
+      - "8182:8182"   # Identity API
+      - "10001:10001" # Credentials API
+    environment:
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/identityhub
+      EDC_VAULT_HASHICORP_URL: http://vault:8200
+      EDC_VAULT_HASHICORP_TOKEN: root-token-123
+      EDC_HOSTNAME: identity-hub
+      # Puerto dedicado para DID (Raíz, Puerto 80)
+      WEB_HTTP_DID_PORT: 80
+      WEB_HTTP_DID_PATH: /
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8181/api/check/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      default:
+        aliases:
+          - holder-user
+
+  # --- Issuer Service ---
+  issuer-service:
+    build:
+      context: .
+      dockerfile: launcher/issuer-service/Dockerfile
+    container_name: identityhub-issuer
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_started
+      identity-hub:
+        condition: service_healthy
+    ports:
+      - "9191:8181"   # API Default (Admin/Health)
+      - "9090:80"   # DID Resolution (Public)
+      - "8282:8182"   # Identity API
+      - "8283:8283"   # Issuance API
+      - "8383:8383"   # Admin API
+    environment:
+      EDC_DATASOURCE_DEFAULT_URL: jdbc:postgresql://postgres:5432/identityhub
+      EDC_VAULT_HASHICORP_URL: http://vault:8200
+      EDC_VAULT_HASHICORP_TOKEN: root-token-123
+      EDC_HOSTNAME: issuer-service
+      # Configuración del Superusuario del Issuer
+      EDC_IH_API_SUPERUSER_ID: issuer-admin
+      EDC_IH_API_SUPERUSER_KEY: aXNzdWVyLWFkbWlu.password5678
+      # Configuración de Puertos
+      WEB_HTTP_PORT: 8181
+      WEB_HTTP_PATH: /api
+      # Puerto dedicado para DID (Raíz, Puerto 80)
+      WEB_HTTP_DID_PORT: 80
+      WEB_HTTP_DID_PATH: /
+    networks:
+      default:
+        aliases:
+          - issuer-company
