@@ -17,12 +17,12 @@ package org.eclipse.edc.identityhub;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceRegistryImpl;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
+//import org.eclipse.edc.iam.verifiablecredentials.revocation.RevocationServiceRegistryImpl;
+//import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
+//import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
+//import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
+//import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.identityhub.accesstoken.rules.ClaimIsPresentRule;
 import org.eclipse.edc.identityhub.defaults.EdcScopeToCriterionTransformer;
 import org.eclipse.edc.identityhub.defaults.store.InMemoryCredentialOfferStore;
@@ -56,7 +56,7 @@ import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
-import java.util.List;
+//import java.util.List;
 
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_CONTEXT_URL;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
@@ -161,16 +161,16 @@ public class DefaultServicesExtension implements ServiceExtension {
         return new EdcScopeToCriterionTransformer();
     }
 
-    @Provider(isDefault = true)
-    public RevocationServiceRegistry createRevocationListService(ServiceExtensionContext context) {
-        if (revocationService == null) {
-            revocationService = new RevocationServiceRegistryImpl(context.getMonitor());
-            var acceptedContentTypes = List.of(contentTypes.split(","));
-            revocationService.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
-            revocationService.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
-        }
-        return revocationService;
-    }
+//    @Provider(isDefault = true)
+//    public RevocationServiceRegistry createRevocationListService(ServiceExtensionContext context) {
+//        if (revocationService == null) {
+//            revocationService = new RevocationServiceRegistryImpl(context.getMonitor());
+//            var acceptedContentTypes = List.of(contentTypes.split(","));
+//            revocationService.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
+//            revocationService.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
+//        }
+//        return revocationService;
+//    }
 
     @Provider(isDefault = true)
     public SignatureSuiteRegistry createSignatureSuiteRegistry() {

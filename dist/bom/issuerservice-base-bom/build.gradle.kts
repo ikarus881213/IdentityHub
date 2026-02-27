@@ -38,6 +38,27 @@ dependencies {
 
     implementation(project(":extensions:sts:sts-account-provisioner"))
 
+    // SQL Stores
+    implementation(project(":extensions:store:sql:identity-hub-did-store-sql"))
+    implementation(project(":extensions:store:sql:identity-hub-keypair-store-sql"))
+    implementation(project(":extensions:store:sql:identity-hub-credentials-store-sql"))
+    implementation(project(":extensions:store:sql:issuance-process-store-sql"))
+    implementation(project(":extensions:store:sql:issuerservice-holder-store-sql"))
+    implementation(project(":extensions:store:sql:holder-credential-offer-store-sql"))
+    implementation(project(":extensions:store:sql:holder-credential-request-store-sql"))
+    implementation(project(":extensions:store:sql:issuerservice-credential-definition-store-sql"))
+    implementation(project(":extensions:store:sql:issuerservice-attestation-definition-store-sql"))
+    implementation(project(":extensions:store:sql:sts-client-store-sql"))
+
+    // EDC SQL Core & Participant Context
+    implementation(libs.edc.sql.core)
+    implementation(libs.edc.sql.participantcontext)
+    implementation(libs.edc.sql.pool)
+    implementation(libs.edc.sql.lease)
+    implementation(libs.edc.sql.lease.core)
+    implementation(libs.edc.transaction.local)
+    runtimeOnly(libs.postgres) // Driver JDBC
+
     runtimeOnly(libs.edc.identity.did.core)
     runtimeOnly(libs.edc.core.token)
     runtimeOnly(libs.edc.core.participantcontext)
